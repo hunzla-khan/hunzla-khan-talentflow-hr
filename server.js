@@ -5,9 +5,9 @@ const FILE = path.join(__dirname, 'data.json');
 const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, ''), SB_KEY = process.env.SUPABASE_KEY || '';
 const SECRET = process.env.SESSION_SECRET || crypto.createHash('sha256').update('tf-' + (process.env.ADMIN_PASS || 'admin123')).digest('hex');
 const INDEX = fs.readFileSync(path.join(__dirname, 'index.html'));
-const STAGES = ['Applied', 'Screened', 'Shortlisted', 'Interview', 'Selected', 'Rejected'];
+const STAGES = ['Applied', 'Screened', 'Shortlisted', 'Interview', 'Selected', 'Hired', 'Rejected'];
 const SRC = { link: 'Direct link', linkedin: 'LinkedIn', indeed: 'Indeed', rozee: 'Rozee.pk', social: 'Social media' };
-let db = { jobs: [], apps: [], users: [], settings: { th: 60 } };
+let db = { jobs: [], apps: [], users: [], interviews: [], offers: [], settings: { th: 60, company: 'Our Company' } };
 
 // ---------- storage (Supabase if configured, else local file) ----------
 const H = () => SB_KEY.startsWith('sb_') ? { apikey: SB_KEY, 'Content-Type': 'application/json' } : { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
@@ -56,7 +56,7 @@ function score(a) {
   const m = j.keywords.filter(k => t.includes(k.toLowerCase()));
   const kp = j.keywords.length ? m.length / j.keywords.length : 0;
   const ep = j.minExp ? Math.min(a.exp / j.minExp, 1) : 1;
-  return { score: Math.round(kp * 70 + ep * 30), matched: m };
+  return { score: Math.round(kp * 70 + ep * 30), matched: m, kw: Math.round(kp * 100), ex: Math.round(ep * 100) };
 }
 function mkApp(o, by, label) {
   const a = { id: rid(), jobId: o.jobId, name: String(o.name).trim().slice(0, 120), email: String(o.email).trim().slice(0, 160), phone: String(o.phone || '').slice(0, 40), exp: Math.max(0, Math.min(60, parseFloat(o.exp) || 0)), text: String(o.text || '').slice(0, 8000), source: o.source, date: today(), stage: 'Applied', score: null, matched: [], notes: '', log: [{ t: Date.now(), by, x: label }] };
@@ -74,7 +74,7 @@ async function api(req, res, u, p) {
   // public: job info + apply
   if ((r = p.match(/^\/api\/public\/job\/(\w+)$/)) && m === 'GET') {
     const j = jobOf(r[1]); if (!j) return fail(res, 404, 'Job not found');
-    return send(res, 200, { id: j.id, title: j.title, dept: j.dept, sector: j.sector, keywords: j.keywords, minExp: j.minExp, status: j.status });
+    return send(res, 200, { company: db.settings.company, id: j.id, title: j.title, dept: j.dept, sector: j.sector, keywords: j.keywords, minExp: j.minExp, status: j.status });
   }
   if (p === '/api/public/apply' && m === 'POST') {
     if (b.website) return send(res, 200, { ok: true });           // honeypot
@@ -103,7 +103,7 @@ async function api(req, res, u, p) {
   if (!me) return fail(res, 401, 'Please sign in.');
   const HR = ['admin', 'hr'].includes(me.role), ADMIN = me.role === 'admin';
   if (p === '/api/me') return send(res, 200, { user: pub(me) });
-  if (p === '/api/data') return send(res, 200, { user: pub(me), jobs: db.jobs, apps: db.apps, th: db.settings.th, users: ADMIN ? db.users.map(pub) : [] });
+  if (p === '/api/data') return send(res, 200, { user: pub(me), jobs: db.jobs, apps: db.apps, interviews: db.interviews, offers: db.offers, company: db.settings.company, th: db.settings.th, users: ADMIN ? db.users.map(pub) : [] });
   if (p === '/api/password' && m === 'POST') {
     if (!check(String(b.old || ''), me.pw)) return fail(res, 400, 'Current password is wrong.');
     if (String(b.new || '').length < 6) return fail(res, 400, 'New password must be at least 6 characters.');
@@ -117,12 +117,37 @@ async function api(req, res, u, p) {
       if (typeof b.notes === 'string') a.notes = b.notes.slice(0, 2000);
       if (b.stage) {
         if (!STAGES.includes(b.stage)) return fail(res, 400, 'Bad stage');
-        if (!HR && (a.stage === 'Applied' || b.stage === 'Applied' || b.stage === 'Screened')) return fail(res, 403, 'Only HR can do that.');
+        if (!HR && (a.stage === 'Applied' || ['Applied', 'Screened', 'Hired'].includes(b.stage))) return fail(res, 403, 'Only HR can do that.');
         a.stage = b.stage; a.log.push({ t: Date.now(), by: me.name, x: 'Moved to ' + b.stage });
       }
       save(); return send(res, 200, { ok: true });
     }
-    if (m === 'DELETE') { if (!HR) return fail(res, 403, 'HR only'); db.apps = db.apps.filter(x => x !== a); save(); return send(res, 200, { ok: true }); }
+    if (m === 'DELETE') { if (!HR) return fail(res, 403, 'HR only'); db.apps = db.apps.filter(x => x !== a); db.interviews = db.interviews.filter(i => i.appId !== a.id); db.offers = db.offers.filter(o => o.appId !== a.id); save(); return send(res, 200, { ok: true }); }
+  }
+
+  // interviews: HR and managers
+  if (p === '/api/interviews' && m === 'POST') {
+    const a = db.apps.find(x => x.id === b.appId); if (!a) return fail(res, 400, 'Candidate not found.');
+    if (!['Screened', 'Shortlisted', 'Interview'].includes(a.stage)) return fail(res, 400, 'The candidate must be Screened, Shortlisted or already in Interview stage.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') || !/^\d{2}:\d{2}$/.test(b.time || '')) return fail(res, 400, 'Choose a date and time.');
+    const iv = { id: rid(), appId: a.id, when: b.date + 'T' + b.time, type: ['Phone', 'Video', 'On-site'].includes(b.type) ? b.type : 'Video', interviewer: String(b.interviewer || me.name).slice(0, 80), location: String(b.location || '').slice(0, 200), status: 'Scheduled', rating: null, rec: '', feedback: '', by: me.name };
+    db.interviews.push(iv);
+    if (a.stage !== 'Interview') { a.stage = 'Interview'; a.log.push({ t: Date.now(), by: me.name, x: 'Moved to Interview' }); }
+    a.log.push({ t: Date.now(), by: me.name, x: `Interview scheduled for ${b.date} ${b.time} (${iv.type})` });
+    save(); return send(res, 200, { ok: true });
+  }
+  if ((r = p.match(/^\/api\/interviews\/(\w+)$/))) {
+    const iv = db.interviews.find(x => x.id === r[1]); if (!iv) return fail(res, 404, 'Interview not found');
+    const a = db.apps.find(x => x.id === iv.appId);
+    if (m === 'PATCH') {
+      if (['Scheduled', 'Completed', 'Cancelled'].includes(b.status)) iv.status = b.status;
+      if (b.rating != null && b.rating !== '') iv.rating = Math.max(1, Math.min(5, Math.round(+b.rating || 1)));
+      if (typeof b.rec === 'string') iv.rec = b.rec.slice(0, 20);
+      if (typeof b.feedback === 'string') iv.feedback = b.feedback.slice(0, 3000);
+      if (a) a.log.push({ t: Date.now(), by: me.name, x: 'Interview ' + iv.status.toLowerCase() + (iv.rating ? ` (rating ${iv.rating}/5)` : '') });
+      save(); return send(res, 200, { ok: true });
+    }
+    if (m === 'DELETE') { if (!HR) return fail(res, 403, 'HR only'); db.interviews = db.interviews.filter(x => x !== iv); save(); return send(res, 200, { ok: true }); }
   }
 
   // HR only below
@@ -140,13 +165,13 @@ async function api(req, res, u, p) {
   if (p === '/api/ats/run' && m === 'POST') {
     let n = 0;
     for (const a of db.apps.filter(x => x.stage === 'Applied')) {
-      const s = score(a); a.score = s.score; a.matched = s.matched;
+      const s = score(a); a.score = s.score; a.matched = s.matched; a.kw = s.kw; a.ex = s.ex;
       a.stage = s.score >= db.settings.th ? 'Screened' : 'Rejected';
       a.log.push({ t: Date.now(), by: 'ATS', x: `Scored ${s.score}% → ${a.stage}` }); n++;
     }
     save(); return send(res, 200, { count: n });
   }
-  if (p === '/api/settings' && m === 'PUT') { db.settings.th = Math.max(0, Math.min(100, +b.th || 0)); save(); return send(res, 200, { ok: true }); }
+  if (p === '/api/settings' && m === 'PUT') { if (b.th != null) db.settings.th = Math.max(0, Math.min(100, +b.th || 0)); if (typeof b.company === 'string') db.settings.company = b.company.trim().slice(0, 80) || 'Our Company'; save(); return send(res, 200, { ok: true }); }
   if (p === '/api/apps/import' && m === 'POST') {
     const j = jobOf(b.jobId); if (!j) return fail(res, 400, 'Choose a job first.');
     const src = String(b.source || 'Other').slice(0, 40); let ok = 0, dup = 0, bad = 0;
@@ -157,6 +182,32 @@ async function api(req, res, u, p) {
       mkApp({ ...row, jobId: j.id, source: src }, me.name, 'Imported from ' + src); ok++;
     }
     save(); return send(res, 200, { ok, dup, bad });
+  }
+
+  // offers (HR only)
+  if (p === '/api/offers' && m === 'POST') {
+    const a = db.apps.find(x => x.id === b.appId); if (!a) return fail(res, 400, 'Candidate not found.');
+    if (a.stage !== 'Selected') return fail(res, 400, 'Only Selected candidates can receive an offer.');
+    if (db.offers.some(o => o.appId === a.id && o.status !== 'Declined')) return fail(res, 409, 'An offer already exists for this candidate.');
+    db.offers.push({ id: rid(), appId: a.id, salary: String(b.salary || '').slice(0, 60), startDate: String(b.startDate || '').slice(0, 20), notes: String(b.notes || '').slice(0, 1000), status: 'Draft', by: me.name });
+    a.log.push({ t: Date.now(), by: me.name, x: 'Offer drafted' }); save(); return send(res, 200, { ok: true });
+  }
+  if ((r = p.match(/^\/api\/offers\/(\w+)$/))) {
+    const o = db.offers.find(x => x.id === r[1]); if (!o) return fail(res, 404, 'Offer not found');
+    const a = db.apps.find(x => x.id === o.appId);
+    if (m === 'PATCH') {
+      if (typeof b.salary === 'string') o.salary = b.salary.slice(0, 60);
+      if (typeof b.startDate === 'string') o.startDate = b.startDate.slice(0, 20);
+      if (['Draft', 'Sent', 'Accepted', 'Declined'].includes(b.status) && b.status !== o.status) {
+        o.status = b.status;
+        if (a) {
+          a.log.push({ t: Date.now(), by: me.name, x: 'Offer ' + b.status.toLowerCase() });
+          if (b.status === 'Accepted') { a.stage = 'Hired'; a.hiredDate = today(); a.log.push({ t: Date.now(), by: me.name, x: 'Moved to Hired' }); }
+        }
+      }
+      save(); return send(res, 200, { ok: true });
+    }
+    if (m === 'DELETE') { db.offers = db.offers.filter(x => x !== o); save(); return send(res, 200, { ok: true }); }
   }
 
   // admin: users
@@ -184,6 +235,8 @@ async function api(req, res, u, p) {
 
 // ---------- first-run seed ----------
 function seed() {
+  db.interviews = db.interviews || []; db.offers = db.offers || []; db.settings = db.settings || { th: 60 };
+  if (!db.settings.company) db.settings.company = 'Our Company';
   if (!db.users.length) {
     db.users.push({ id: rid(), username: (process.env.ADMIN_USER || 'admin').toLowerCase(), name: 'HR Admin', role: 'admin', pw: hash(process.env.ADMIN_PASS || 'admin123') });
     console.log('Created admin user. Username:', db.users[0].username);
@@ -191,8 +244,19 @@ function seed() {
   if (!db.jobs.length && process.env.SEED_DEMO !== '0') {
     const J = [['HR Executive', 'Human Resources', 'Corporate', ['recruitment', 'payroll', 'onboarding', 'communication', 'excel'], 2], ['Staff Nurse', 'Nursing', 'Healthcare', ['patient care', 'iv', 'bls', 'documentation', 'triage'], 1], ['Software Engineer', 'IT', 'Technology', ['javascript', 'react', 'sql', 'api', 'git'], 3], ['School Teacher', 'Academics', 'Education', ['lesson planning', 'classroom', 'curriculum', 'assessment'], 2]];
     J.forEach(([title, dept, sector, keywords, minExp]) => db.jobs.push({ id: rid(), title, dept, sector, keywords, minExp, status: 'Open' }));
-    const D = [[0, 'Ayesha Khan', 3, 'Handled recruitment, onboarding and payroll for 3 years. Strong communication, advanced Excel.'], [0, 'Bilal Ahmed', 0, 'Fresh graduate in business administration.'], [2, 'Sara Malik', 4, 'Built web apps with JavaScript and React, REST API design, SQL databases, Git workflows.'], [1, 'Hina Rashid', 2, 'Staff nurse with BLS, IV therapy, triage and patient care documentation experience.']];
-    D.forEach(([i, name, exp, text], k) => mkApp({ jobId: db.jobs[i].id, name, email: name.split(' ')[0].toLowerCase() + '@example.com', phone: '0300-000000' + k, exp, text, source: ['LinkedIn', 'Rozee.pk', 'Indeed', 'Direct link'][k] }, name, 'Applied (demo data)'));
+    const day = n => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+    const mk = (j, name, exp, text, source) => mkApp({ jobId: db.jobs[j].id, name, email: name.split(' ')[0].toLowerCase() + '@example.com', phone: '0300-1234567', exp, text, source }, name, 'Applied via ' + source + ' (demo)');
+    const ats = (a, st) => { const s = score(a); a.score = s.score; a.matched = s.matched; a.kw = s.kw; a.ex = s.ex; a.stage = st; a.log.push({ t: Date.now(), by: 'ATS', x: `Scored ${s.score}% → ${st}` }); };
+    const mv = (a, st, by) => { a.stage = st; a.log.push({ t: Date.now(), by, x: 'Moved to ' + st }); };
+    const iv = (a, d, t, status, rating, rec, feedback) => db.interviews.push({ id: rid(), appId: a.id, when: d + 'T' + t, type: 'Video', interviewer: 'Hiring Manager', location: 'Google Meet', status, rating, rec, feedback, by: 'Hiring Manager' });
+    const a1 = mk(0, 'Ayesha Khan', 3, 'Handled recruitment, onboarding and payroll for 3 years. Strong communication, advanced Excel.', 'LinkedIn'); ats(a1, 'Screened'); mv(a1, 'Shortlisted', 'Hiring Manager'); mv(a1, 'Interview', 'Hiring Manager'); iv(a1, day(1), '11:00', 'Scheduled', null, '', '');
+    const a2 = mk(0, 'Bilal Ahmed', 0, 'Fresh graduate in business administration.', 'Rozee.pk'); ats(a2, 'Rejected');
+    const a3 = mk(2, 'Sara Malik', 4, 'Built web apps with JavaScript and React, REST API design, SQL databases, Git workflows.', 'Indeed'); ats(a3, 'Screened'); mv(a3, 'Interview', 'Hiring Manager'); iv(a3, day(-2), '15:00', 'Completed', 4, 'Yes', 'Strong technical answers.'); mv(a3, 'Selected', 'Hiring Manager');
+    db.offers.push({ id: rid(), appId: a3.id, salary: 'PKR 350,000 / month', startDate: day(21), notes: '', status: 'Sent', by: 'HR Admin' }); a3.log.push({ t: Date.now(), by: 'HR Admin', x: 'Offer sent' });
+    const a4 = mk(1, 'Hina Rashid', 2, 'Staff nurse with BLS, IV therapy, triage and patient care documentation experience.', 'Direct link'); ats(a4, 'Screened');
+    const a5 = mk(3, 'Usman Tariq', 5, 'Experienced teacher: lesson planning, classroom management, curriculum design and student assessment.', 'LinkedIn'); ats(a5, 'Screened'); mv(a5, 'Interview', 'Hiring Manager'); iv(a5, day(-6), '10:00', 'Completed', 5, 'Strong Yes', 'Excellent demo lesson.'); mv(a5, 'Selected', 'Hiring Manager');
+    db.offers.push({ id: rid(), appId: a5.id, salary: 'PKR 120,000 / month', startDate: day(10), notes: '', status: 'Accepted', by: 'HR Admin' }); a5.stage = 'Hired'; a5.hiredDate = day(-1); a5.log.push({ t: Date.now(), by: 'HR Admin', x: 'Offer accepted' }, { t: Date.now(), by: 'HR Admin', x: 'Moved to Hired' });
+    mk(1, 'Zainab Noor', 1, 'Registered nurse, BLS certified, patient care and documentation.', 'Rozee.pk');
   }
 }
 
