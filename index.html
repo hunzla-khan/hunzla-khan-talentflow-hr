@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TalentFlow – HR Recruitment CRM</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f4fb;--side:#161a3a;--card:#fff;--tx:#1b1f3b;--mu:#6c7293;--bd:#e4e7f4;--pr:#6366f1;--pr2:#a855f7;--prt:#fff;--ok:#10a37f;--bad:#e5484d;--warn:#e59a1a;--sh:0 6px 24px rgba(40,45,110,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0e1020;--side:#0a0c1a;--card:#171a31;--tx:#eef0fb;--mu:#9a9fc0;--bd:#262a48;--sh:0 6px 24px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0e1020;--side:#0a0c1a;--card:#171a31;--tx:#eef0fb;--mu:#9a9fc0;--bd:#262a48;--sh:0 6px 24px rgba(0,0,0,.35)}
+*{box-sizing:border-box}html,body{height:100%}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.shell{display:flex;min-height:100%}
+aside{width:228px;background:var(--side);color:#cfd3f5;padding:20px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;color:#fff;font-weight:700;font-size:19px}
+.logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--pr),var(--pr2));display:grid;place-items:center;font-style:normal}
+aside button{display:flex;gap:10px;align-items:center;border:0;background:none;color:inherit;padding:10px 12px;border-radius:10px;cursor:pointer;font:inherit;text-align:left}
+aside button:hover{background:rgba(255,255,255,.07)}aside button.on{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.4)}
+.me{margin-top:auto;padding:12px;border-radius:12px;background:rgba(255,255,255,.07);font-size:13px}
+.me b{display:block;color:#fff}.me span{opacity:.7}
+main{flex:1;min-width:0;padding:24px 28px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{margin:0;font-size:24px}h2{margin:0 0 10px;font-size:16px}.mu{color:var(--mu);font-size:13px}
+.hero{background:linear-gradient(135deg,#4f46e5,#9333ea 60%,#ec4899);color:#fff;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:var(--sh)}
+.hero h1{color:#fff}.hero p{margin:6px 0 0;opacity:.9}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;box-shadow:var(--sh);margin-bottom:16px}
+.stat{display:flex;gap:12px;align-items:center}.stat em{font-style:normal;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(168,85,247,.18))}
+.stat b{font-size:26px;display:block;line-height:1.1}
+label{display:block;font-size:12.5px;color:var(--mu);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+textarea{min-height:90px}input:focus,select:focus,textarea:focus{outline:2px solid var(--pr);border-color:transparent}
+.btn{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;border:0;padding:10px 16px;border-radius:10px;cursor:pointer;font:inherit;font-weight:600}
+.btn.s{background:none;color:var(--tx);border:1px solid var(--bd);font-weight:500;padding:6px 11px;font-size:13px}
+.btn.ok{background:var(--ok);color:#fff;border:0}.btn.bad{background:var(--bad);color:#fff;border:0}.btn:disabled{opacity:.5}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--bd);vertical-align:middle}th{color:var(--mu);font-size:12px;font-weight:600}
+.av{width:34px;height:34px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.who{display:flex;gap:10px;align-items:center}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;background:rgba(99,102,241,.14);color:var(--pr)}
+.p-Selected{background:rgba(16,163,127,.15);color:var(--ok)}.p-Rejected{background:rgba(229,72,77,.14);color:var(--bad)}.p-Shortlisted,.p-Interview{background:rgba(229,154,26,.16);color:var(--warn)}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--pr),var(--pr2));border-radius:9px}
+.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px}
+.col{min-width:240px;flex:1;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:12px}
+.col h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between}
+.k{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:8px;cursor:pointer}.k:hover{border-color:var(--pr)}
+.ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--pr) calc(var(--v)*1%),var(--bd) 0)}
+.ring b{width:64px;height:64px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:20px}
+.modal{position:fixed;inset:0;background:rgba(10,12,30,.6);display:grid;place-items:center;padding:16px;z-index:50}
+.mbox{background:var(--card);border-radius:18px;padding:22px;width:min(620px,100%);max-height:90vh;overflow:auto}
+.note{padding:10px 12px;border-radius:10px;background:rgba(16,163,127,.12);color:var(--ok);margin-bottom:12px}
+.chip{display:inline-block;margin:2px;padding:1px 8px;border-radius:8px;font-size:12px;border:1px solid var(--bd)}
+.pub{max-width:660px;margin:0 auto}
+@media(max-width:760px){.shell{flex-direction:column}aside{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:10px}.logo,.me{display:none}aside button{white-space:nowrap}main{padding:16px}}
+</style>
+<style>
+.pub{max-width:660px;margin:0 auto}.login{max-width:390px;margin:10vh auto}.err{color:var(--bad);margin-top:8px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}.step:last-child{border:0}
+.step i{font-style:normal;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;display:grid;place-items:center;font-weight:700;flex-shrink:0}
+</style>
+</head><body>
+<div class="shell"><aside id="side" style="display:none"></aside><main id="app"><div class="card">Loading TalentFlow…</div></main></div>
+<div id="modal"></div>
+<script>
+const STAGES=["Applied","Screened","Shortlisted","Interview","Selected","Rejected"];
+const IMP=["LinkedIn","Indeed","Rozee.pk","Campaign form","Other"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ini=n=>String(n||"?").split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+const hue=n=>{let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))%360;return`hsl(${h} 60% 50%)`};
+const av=n=>`<span class="av" style="background:${hue(n)}">${esc(ini(n))}</span>`;
+let D={jobs:[],apps:[],users:[],th:60},ME=null,tab="Dashboard",flt={job:"",q:"",src:""},note="";
+const job=id=>D.jobs.find(j=>j.id==id)||{title:"(removed job)",dept:"",keywords:[],minExp:0};
+const isHR=()=>ME&&ME.role!="manager";
+const ROLE={admin:"HR Admin",hr:"HR Staff",manager:"Hiring Manager"};
+const ICON={Dashboard:"📊",Pipeline:"🗂️",Candidates:"👥",Jobs:"💼","ATS Screening":"🤖",Import:"📥",Users:"🔐"};
+async function api(m,u,b){const r=await fetch("/api"+u,{method:m,headers:{"Content-Type":"application/json"},body:b?JSON.stringify(b):undefined,credentials:"same-origin"});let j={};try{j=await r.json()}catch(e){}if(!r.ok){const e=new Error(j.error||"Request failed");e.status=r.status;throw e}return j}
+async function refresh(){const d=await api("GET","/data");D=d;ME=d.user;render()}
+async function run(f){try{await f();await refresh()}catch(e){if(e.status==401){ME=null;renderLogin()}else alert(e.message)}}
+const tabs=()=>{const t=["Dashboard","Pipeline","Candidates"];if(isHR())t.push("Jobs","ATS Screening","Import");if(ME.role=="admin")t.push("Users");return t};
+const closeM=()=>$("modal").innerHTML="";
+const pill=s=>`<span class="pill p-${s}">${s}</span>`;
+const bar=v=>v==null?'<span class="mu">Not screened</span>':`<div class="bar" style="min-width:70px"><i style="width:${v}%"></i></div><span class="mu">${v}%</span>`;
+const N=()=>note?`<div class="note">${esc(note)}</div>`:"";
+
+/* ---------- public apply page (no login) ---------- */
+const PM=location.pathname.match(/^\/apply\/(\w+)/);
+async function renderPub(){document.title="Apply – TalentFlow";let j;try{j=await api("GET","/public/job/"+PM[1])}catch(e){}
+ const box=h=>$("app").innerHTML=`<div class="pub">${h}</div>`;
+ if(!j||j.status!="Open")return box('<div class="card"><h1>Position unavailable</h1><p class="mu">This job is closed or the link is incorrect.</p></div>');
+ box(`<div class="hero"><h1>${esc(j.title)}</h1><p>${esc(j.dept)}${j.sector?" · "+esc(j.sector):""}</p></div><div class="card"><p class="mu">Experience required: ${j.minExp} yr${j.keywords.length?" · Key skills: "+esc(j.keywords.join(", ")):""}</p><div class="row"><div><label>Full name</label><input id="an"></div><div><label>Email</label><input id="ae" type="email"></div><div><label>Phone</label><input id="ap"></div><div><label>Years of experience</label><input id="ax" type="number" min="0"></div></div><input id="aw" style="display:none" tabindex="-1" autocomplete="off"><label>Your skills &amp; experience (paste your CV text)</label><textarea id="at"></textarea><p><button class="btn" id="sb" onclick="submitPub('${j.id}')">Submit application</button></p><div class="err" id="pe"></div></div>`)}
+async function submitPub(id){const g=i=>$(i).value.trim();$("pe").textContent="";$("sb").disabled=true;
+ try{await api("POST","/public/apply",{jobId:id,name:g("an"),email:g("ae"),phone:g("ap"),exp:g("ax"),text:g("at"),website:$("aw").value,source:new URLSearchParams(location.search).get("src")||"link"});
+  $("app").innerHTML='<div class="pub"><div class="hero"><h1>Application received 🎉</h1><p>Thank you! Our HR team will review your profile and contact you.</p></div></div>'}catch(e){$("pe").textContent=e.message;$("sb").disabled=false}}
+
+/* ---------- login ---------- */
+function renderLogin(){$("side").style.display="none";closeM();$("app").innerHTML=`<div class="login card"><div class="logo" style="color:var(--tx);padding:0 0 14px"><i>✦</i>TalentFlow</div><h2>Sign in to HR CRM</h2><label>Username</label><input id="lu" autocomplete="username"><label>Password</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')doLogin()"><p><button class="btn" style="width:100%" onclick="doLogin()">Sign in</button></p><div class="err" id="le"></div></div>`}
+async function doLogin(){try{await api("POST","/login",{username:$("lu").value,password:$("lp").value});tab="Dashboard";await refresh()}catch(e){$("le").textContent=e.message}}
+async function logout(){await api("POST","/logout");ME=null;renderLogin()}
+async function chPw(){const o=prompt("Current password:");if(o==null)return;const n=prompt("New password (min 6 characters):");if(n==null)return;try{await api("POST","/password",{old:o,new:n});alert("Password changed.")}catch(e){alert(e.message)}}
+
+/* ---------- actions ---------- */
+const stage=(id,st)=>run(()=>api("PATCH","/apps/"+id,{stage:st}));
+const saveNote=id=>run(async()=>{await api("PATCH","/apps/"+id,{notes:$("nt").value});closeM()});
+const delApp=id=>{if(confirm("Delete this candidate permanently?"))run(async()=>{await api("DELETE","/apps/"+id);closeM()})};
+const runATS=()=>run(async()=>{const r=await api("POST","/ats/run");note=r.count?`ATS screened ${r.count} application(s).`:"No new applications to screen."});
+const setTH=v=>run(()=>api("PUT","/settings",{th:+v}));
+const addJob=()=>{const g=i=>$(i).value.trim();run(async()=>{await api("POST","/jobs",{title:g("jt"),dept:g("jd"),sector:g("js"),minExp:g("jx"),keywords:g("jk").split(",")});note="Job posted."})};
+const toggleJob=id=>run(()=>api("PATCH","/jobs/"+id,{status:job(id).status=="Open"?"Closed":"Open"}));
+const delJob=id=>{if(confirm("Delete this job? Its candidates stay in the system."))run(()=>api("DELETE","/jobs/"+id))};
+const addUser=()=>{const g=i=>$(i).value.trim();run(async()=>{await api("POST","/users",{name:g("un"),username:g("uu"),password:$("up").value,role:$("ur").value});note="User created. Share the username and password with them."})};
+const setRole=(id,r)=>run(()=>api("PATCH","/users/"+id,{role:r}));
+const resetPw=id=>{const p=prompt("New password for this user (min 6 characters):");if(p)run(async()=>{await api("PATCH","/users/"+id,{password:p});note="Password updated."})};
+const delUser=id=>{if(confirm("Remove this user?"))run(()=>api("DELETE","/users/"+id))};
+function cp(b){const i=b.previousElementSibling;i.select();try{navigator.clipboard.writeText(i.value)}catch(e){try{document.execCommand("copy")}catch(_){}}b.textContent="Copied ✓"}
+function links(id){const j=job(id),B=location.origin+"/apply/"+id,L=[["Direct link",""],["LinkedIn","?src=linkedin"],["Indeed","?src=indeed"],["Rozee.pk","?src=rozee"],["Social media / WhatsApp","?src=social"]];
+ $("modal").innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div class="mbox"><h2>Apply links · ${esc(j.title)}</h2><p class="mu">Anyone can open these links without an account. Use the matching link on each platform so you can see where applicants come from.</p>${L.map(x=>`<label>${x[0]}</label><div class="row" style="gap:6px;flex-wrap:nowrap"><input readonly value="${B+x[1]}"><button class="btn s" style="flex:0 0 auto;min-width:0" onclick="cp(this)">Copy</button></div>`).join("")}<p><a class="btn s" style="text-decoration:none;display:inline-block" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("Apply for "+j.title+": "+B)}">Share on WhatsApp</a> <button class="btn s" onclick="closeM()">Close</button></p></div></div>`}
+function csvParse(t){const l=t.split(/\r?\n/)[0],d=(l.match(/\t/g)||[]).length>(l.match(/,/g)||[]).length?"\t":(l.includes(";")&&!l.includes(","))?";":",";const R=[];let r=[],c="",q=0;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=0}else c+=ch}else if(ch=='"')q=1;else if(ch==d){r.push(c);c=""}else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&t[i+1]=="\n")i++;r.push(c);c="";if(r.some(x=>x.trim()))R.push(r);r=[]}else c+=ch}r.push(c);if(r.some(x=>x.trim()))R.push(r);return R}
+function readF(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("csvt").value=r.result};r.readAsText(f)}
+function doImport(){const t=$("csvt").value.trim(),jid=$("ij").value,src=$("is").value;if(!t||!jid){alert("Choose a job, then upload or paste a CSV.");return}
+ const R=csvParse(t);if(R.length<2){alert("The CSV needs a header row and at least one candidate.");return}
+ const H=R[0].map(h=>h.trim().toLowerCase()),iN=H.findIndex(h=>["name","full name","candidate name","applicant name","applicant"].includes(h)),iF=H.indexOf("first name"),iL=H.indexOf("last name"),iE=H.findIndex(h=>/e-?mail/.test(h)),iP=H.findIndex(h=>/phone|mobile|contact/.test(h)),iX=H.findIndex(h=>/experience|exp/.test(h));
+ const rows=R.slice(1).map(r=>({name:(iN>=0?r[iN]:((r[iF]||"")+" "+(r[iL]||""))).trim(),email:(r[iE]||"").trim(),phone:(r[iP]||"").trim(),exp:parseFloat(r[iX])||0,text:r.filter((v,i)=>![iN,iF,iL,iE,iP,iX].includes(i)).join(". ")}));
+ run(async()=>{const r=await api("POST","/apps/import",{jobId:jid,source:src,rows});note=`Imported ${r.ok} candidate(s) from ${src}. Skipped ${r.dup} duplicate(s) and ${r.bad} row(s) without a valid name or email.`})}
+function exportCsv(){const r=[["Name","Email","Phone","Source","Job","Department","Experience","ATS","Stage"]].concat(D.apps.map(a=>[a.name,a.email,a.phone,a.source||"",job(a.jobId).title,job(a.jobId).dept,a.exp,a.score??"",a.stage]));
+ const d=r.map(x=>x.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n"),l=document.createElement("a");l.href=URL.createObjectURL(new Blob([d],{type:"text/csv"}));l.download="candidates.csv";l.click()}
+
+/* ---------- views ---------- */
+function openCand(id){const a=D.apps.find(x=>x.id==id);if(!a)return;const j=job(a.jobId);
+ const b=(s,t,c="")=>`<button class="btn s ${c}" onclick="stage('${a.id}','${s}');closeM()">${t}</button>`;
+ $("modal").innerHTML=`<div class="modal" onclick="if(event.target==this)closeM()"><div class="mbox"><div class="row" style="align-items:center"><div class="who">${av(a.name)}<div><h2 style="margin:0">${esc(a.name)}</h2><span class="mu">${esc(j.title)} · ${esc(j.dept)}</span></div></div>${a.score!=null?`<div style="flex:0"><div class="ring" style="--v:${a.score}"><b>${a.score}</b></div></div>`:""}</div>
+ <p class="mu">${esc(a.email)} · ${esc(a.phone)} · ${a.exp} yr experience · applied ${esc(a.date)} · via ${esc(a.source||"Direct")}</p>${pill(a.stage)}
+ <label>Profile</label><div>${esc(a.text)||"—"}</div>${(a.matched||[]).length?`<label>Matched keywords</label>${a.matched.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}`:""}
+ <label>Notes</label><textarea id="nt">${esc(a.notes)}</textarea><p><button class="btn s" onclick="saveNote('${a.id}')">Save note</button></p>
+ <label>Actions</label><div class="row" style="gap:6px">${a.stage=="Applied"&&isHR()?b("Screened","Pass screening"):""}${a.stage=="Screened"?b("Shortlisted","Shortlist"):""}${a.stage=="Shortlisted"?b("Interview","Schedule interview"):""}${a.stage!="Selected"&&a.stage!="Applied"?b("Selected","✓ Select","ok"):""}${a.stage!="Rejected"?b("Rejected","Reject","bad"):""}</div>
+ <label>Activity</label>${(a.log||[]).slice().reverse().map(l=>`<div class="mu">${new Date(l.t).toLocaleString()} · ${esc(l.by)}: ${esc(l.x)}</div>`).join("")}
+ <p><button class="btn s" onclick="closeM()">Close</button> ${isHR()?`<button class="btn s bad" onclick="delApp('${a.id}')">Delete</button>`:""}</p></div></div>`}
+function list(l){return `<div class="tw"><table><tr><th>Candidate</th><th>Position</th><th>Exp</th><th>ATS score</th><th>Stage</th></tr>${l.map(a=>`<tr style="cursor:pointer" onclick="openCand('${a.id}')"><td><div class="who">${av(a.name)}<div><b>${esc(a.name)}</b><div class="mu">${esc(a.email)} · ${esc(a.source||"Direct")}</div></div></div></td><td>${esc(job(a.jobId).title)}<div class="mu">${esc(job(a.jobId).dept)}</div></td><td>${a.exp} yr</td><td>${bar(a.score)}</td><td>${pill(a.stage)}</td></tr>`).join("")||'<tr><td colspan="5" class="mu">No candidates yet.</td></tr>'}</table></div>`}
+const fl=()=>D.apps.filter(a=>(!flt.job||a.jobId==flt.job)&&(!flt.src||(a.source||"Direct")==flt.src)&&(!flt.q||(a.name+a.email).toLowerCase().includes(flt.q.toLowerCase())));
+const fbar=()=>`<div class="row" style="margin-bottom:14px"><select onchange="flt.job=this.value;render()"><option value="">All jobs</option>${D.jobs.map(j=>`<option value="${j.id}" ${flt.job==j.id?"selected":""}>${esc(j.title)} – ${esc(j.dept)}</option>`).join("")}</select><select onchange="flt.src=this.value;render()"><option value="">All sources</option>${[...new Set(D.apps.map(a=>a.source||"Direct"))].map(s=>`<option ${flt.src==s?"selected":""}>${esc(s)}</option>`).join("")}</select><input placeholder="Search name or email…" value="${esc(flt.q)}" onchange="flt.q=this.value;render()"></div>`;
+const go=t=>{tab=t;note="";render()};
+const V={
+Dashboard(){const c=s=>D.apps.filter(a=>a.stage==s).length,mx=Math.max(1,...STAGES.map(c)),src=D.apps.reduce((o,a)=>{const s=a.source||"Direct";o[s]=(o[s]||0)+1;return o},{});
+ const steps=[["Post a job","Add the role, department and ATS keywords.","Jobs"],["Collect candidates","Share apply links, or import CSVs from LinkedIn, Indeed, Rozee.pk.","Jobs"],["Run ATS screening","Auto-score every new application.","ATS Screening"],["Manager review","Shortlist, interview, select or reject.","Pipeline"],["Selected candidates","Final list, export to CSV.","Candidates"]];
+ return `<div class="hero"><h1>Welcome, ${esc(ME.name.split(" ")[0])} 👋</h1><p>Your recruitment pipeline across every department, in one place.</p></div>
+ <div class="grid">${[["💼","Open jobs",D.jobs.filter(j=>j.status=="Open").length],["📥","Applications",D.apps.length],["🤖","Awaiting ATS",c("Applied")],["⭐","Shortlisted",c("Shortlisted")+c("Interview")],["🎉","Selected",c("Selected")]].map(x=>`<div class="card stat" style="margin:0"><em>${x[0]}</em><div><b>${x[2]}</b><span class="mu">${x[1]}</span></div></div>`).join("")}</div>
+ <div class="card"><h2>How it works</h2>${steps.map((s,i)=>`<div class="step" onclick="go('${s[2]}')"><i>${i+1}</i><div><b>${s[0]}</b><div class="mu">${s[1]}</div></div></div>`).join("")}</div>
+ <div class="row"><div class="card"><h2>Hiring funnel</h2>${STAGES.map(s=>`<div style="margin:9px 0"><div class="row" style="justify-content:space-between;gap:0"><span>${s}</span><b>${c(s)}</b></div><div class="bar"><i style="width:${c(s)/mx*100}%"></i></div></div>`).join("")}</div>
+ <div class="card"><h2>Candidate sources</h2>${Object.entries(src).map(([s,n])=>`<div class="row" style="justify-content:space-between;gap:0;margin:9px 0"><span>${esc(s)}</span><b>${n}</b></div>`).join("")||'<span class="mu">No applications yet.</span>'}</div>
+ <div class="card"><h2>By department</h2>${[...new Set(D.jobs.map(j=>j.dept))].map(d=>{const ids=D.jobs.filter(j=>j.dept==d).map(j=>j.id),l=D.apps.filter(a=>ids.includes(a.jobId));return `<div class="row" style="justify-content:space-between;gap:0;margin:9px 0"><span>${esc(d)}</span><span class="mu">${l.length} applicants · ${l.filter(a=>a.stage=="Selected").length} selected</span></div>`}).join("")||'<span class="mu">No jobs yet.</span>'}</div></div>`},
+Pipeline(){const l=fl();return `<div class="top"><h1>Pipeline</h1></div>${fbar()}<div class="board">${STAGES.map(s=>`<div class="col"><h3>${s}<span class="pill">${l.filter(a=>a.stage==s).length}</span></h3>${l.filter(a=>a.stage==s).map(a=>`<div class="k" onclick="openCand('${a.id}')"><div class="who">${av(a.name)}<div><b>${esc(a.name)}</b><div class="mu">${esc(job(a.jobId).title)}</div></div></div>${a.score!=null?`<div style="margin-top:8px">${bar(a.score)}</div>`:""}</div>`).join("")}</div>`).join("")}</div>`},
+Candidates(){const l=fl();return `<div class="top"><h1>Candidates (${l.length})</h1><button class="btn s" onclick="exportCsv()">Export CSV</button></div>${fbar()}<div class="card">${list(l)}</div>`},
+Jobs(){return `<div class="top"><h1>Jobs &amp; Departments</h1></div>${N()}<div class="card"><h2>Post a new job</h2><div class="row"><div><label>Job title</label><input id="jt"></div><div><label>Department</label><input id="jd"></div><div><label>Sector</label><input id="js" placeholder="Healthcare, Education, Retail…"></div><div><label>Min. experience (yrs)</label><input id="jx" type="number" min="0"></div></div><label>ATS keywords (comma separated)</label><input id="jk" placeholder="e.g. recruitment, payroll, excel"><p><button class="btn" onclick="addJob()">Post job</button></p></div>
+ <div class="card tw"><table><tr><th>Job</th><th>Sector</th><th>Keywords</th><th>Applicants</th><th></th></tr>${D.jobs.map(j=>`<tr><td><b>${esc(j.title)}</b><div class="mu">${esc(j.dept)}</div></td><td>${esc(j.sector)}</td><td class="mu">${esc((j.keywords||[]).join(", "))}<br>Min ${j.minExp} yr</td><td>${D.apps.filter(a=>a.jobId==j.id).length}</td><td><span class="pill">${j.status}</span> <button class="btn s" onclick="toggleJob('${j.id}')">${j.status=="Open"?"Close":"Reopen"}</button> <button class="btn s" onclick="links('${j.id}')">🔗 Apply links</button> <button class="btn s" onclick="delJob('${j.id}')">Delete</button></td></tr>`).join("")}</table></div>`},
+"ATS Screening"(){return `<div class="top"><h1>Automated ATS Screening</h1></div>${N()}<div class="card"><p>Score = <b>70%</b> keyword match with the job + <b>30%</b> experience fit. Candidates at or above the pass mark go to <b>Screened</b> for manager review; others are auto-rejected (you can still override from the candidate profile).</p><div class="row"><div><label>Pass mark (%)</label><input type="number" min="0" max="100" value="${D.th}" onchange="setTH(this.value)"></div><div><label>&nbsp;</label><button class="btn" onclick="runATS()">Run ATS on ${D.apps.filter(a=>a.stage=="Applied").length} new application(s)</button></div></div></div><div class="card">${list(D.apps.filter(a=>a.stage=="Applied"||a.score!=null))}</div>`},
+Import(){const imp=D.apps.filter(a=>IMP.includes(a.source));return `<div class="top"><h1>Import candidates</h1></div>${N()}<div class="card"><h2>Bring in candidates from LinkedIn, Indeed, Rozee.pk or a campaign form</h2><p class="mu">Export candidates as a CSV file from the platform (or from a Google Form / Sheet) and upload it here. Columns are matched automatically: Name (or First and Last name), Email, Phone, Experience. All other columns (skills, headline, resume text) are used for ATS scoring. Duplicate emails for the same job are skipped.</p><div class="row"><div><label>Source</label><select id="is">${IMP.map(s=>`<option>${s}</option>`).join("")}</select></div><div><label>Apply to job</label><select id="ij">${D.jobs.map(j=>`<option value="${j.id}">${esc(j.title)} – ${esc(j.dept)}</option>`).join("")}</select></div></div><label>CSV file</label><input type="file" accept=".csv,.tsv,.txt" onchange="readF(this)"><label>…or paste CSV text</label><textarea id="csvt" placeholder="Name,Email,Phone,Experience,Skills"></textarea><p><button class="btn" onclick="doImport()">Import candidates</button></p></div><div class="card"><h2>Imported candidates (${imp.length})</h2>${list(imp)}</div>`},
+Users(){return `<div class="top"><h1>Users &amp; Access</h1></div>${N()}<div class="card"><h2>Add a team member</h2><div class="row"><div><label>Full name</label><input id="un"></div><div><label>Username</label><input id="uu"></div><div><label>Password</label><input id="up" type="text"></div><div><label>Role</label><select id="ur"><option value="manager">Hiring Manager</option><option value="hr">HR Staff</option><option value="admin">HR Admin</option></select></div></div><p><button class="btn" onclick="addUser()">Create user</button></p><p class="mu">Hiring Managers can review, shortlist, select or reject. HR Staff can also post jobs, run ATS and import. HR Admin can also manage users.</p></div><div class="card tw"><table><tr><th>User</th><th>Username</th><th>Role</th><th></th></tr>${D.users.map(u=>`<tr><td><div class="who">${av(u.name)}<b>${esc(u.name)}</b></div></td><td>${esc(u.username)}</td><td><select onchange="setRole('${u.id}',this.value)" ${u.id==ME.id?"disabled":""}>${["manager","hr","admin"].map(r=>`<option value="${r}" ${u.role==r?"selected":""}>${ROLE[r]}</option>`).join("")}</select></td><td><button class="btn s" onclick="resetPw('${u.id}')">Reset password</button> ${u.id==ME.id?"":`<button class="btn s" onclick="delUser('${u.id}')">Remove</button>`}</td></tr>`).join("")}</table></div>`}};
+function render(){if(!ME)return;if(!tabs().includes(tab))tab="Dashboard";const s=$("side");s.style.display="";
+ s.innerHTML=`<div class="logo"><i>✦</i>TalentFlow</div>${tabs().map(t=>`<button class="${t==tab?"on":""}" onclick="go('${t}')">${ICON[t]} ${t}</button>`).join("")}<div class="me"><b>${esc(ME.name)}</b><span>${ROLE[ME.role]}</span><div style="margin-top:8px;display:flex;gap:6px"><button class="btn s" style="color:#fff;border-color:rgba(255,255,255,.3);padding:4px 8px" onclick="chPw()">Password</button><button class="btn s" style="color:#fff;border-color:rgba(255,255,255,.3);padding:4px 8px" onclick="logout()">Sign out</button></div></div>`;
+ $("app").innerHTML=V[tab]()}
+(async()=>{if(PM){$("side").style.display="none";return renderPub()}
+ try{await refresh()}catch(e){renderLogin()}
+ setInterval(()=>{if(ME&&!$("modal").innerHTML&&!document.activeElement.matches("input,textarea,select"))refresh().catch(()=>{})},20000)})();
+</script></body></html>

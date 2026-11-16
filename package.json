@@ -1,0 +1,8 @@
+{
+  "name": "talentflow-hr-crm",
+  "version": "1.0.0",
+  "description": "HR recruitment CRM with ATS screening, public apply links and team logins",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
